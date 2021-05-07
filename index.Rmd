@@ -1,0 +1,331 @@
+---
+title: "MAA P2"
+subtitle: |
+  []() 
+ 
+author: |
+  | Data analysis by:
+  | Karol Cichewicz, kcichewicz@ucdavis.edu
+  Raw data available at [GSEXXXXXX]()
+
+output:
+  html_document:
+    code_folding: hide
+    css: style.css
+    theme: spacelab
+    toc: true
+    toc_depth: 4
+    toc_float: true
+urlcolor: blue
+---
+
+# 1. Data pre-processing and QC
+
+## 1.1 fastq file location
+
+Fastq files were downloaded to:     
+/share/nordlab/rawdata/MAA/RNAseq/PoolA     
+/share/nordlab/rawdata/MAA/RNAseq/PoolB     
+/share/nordlab/rawdata/MAA/RNAseq/PoolA/Data/iwnsyj6ovo/Unaligned/Project_ANKC_L2_H2026P_CichewiczA$     
+/share/nordlab/rawdata/MAA/RNAseq/PoolB/Data/68xqoqvb4/Unaligned/Project_ANKC_L3_H2026P_CichewiczB$    
+
+Scripts for downloading the data:     
+wget -r -nH -nc -R index.html* http://slimsdata.genomecenter.ucdavis.edu/Data/iwnsyj6ovo/Unaligned/     
+wget -r -nH -nc -R index.html* http://slimsdata.genomecenter.ucdavis.edu/Data/68xqoqvb4/Unaligned
+
+
+All fastq files were then copied to /share/nordlab/users/kcichewicz/MAA/data/fastq/
+
+
+## 1.2 Read QC using FastQC
+
+```{bash, eval = FALSE}
+ #!/bin/sh
+ #SBATCH --job-name=cp_data
+ #SBATCH --time=02:00:00
+ #SBATCH --mem=16000
+ #SBATCH --ntasks=8
+
+/share/nordlab/users/kcichewicz/bin/FastQC/fastqc \
+--threads 8 \
+--outdir /share/nordlab/users/kcichewicz/MAA/fastqc \
+/share/nordlab/users/kcichewicz/MAA/data/fastq/*fastq.gz
+```
+
+```{bash, eval = FALSE}
+# Output files were copied to the Google drive: 
+scp -r kcichewicz@barbera.genomecenter.ucdavis.edu:/share/nordlab/users/kcichewicz/MAA/fastqc/* /mnt/G_drive/Nord\ Lab
+\ -\ Personal\ Folders/Karol/MAA\,\ new\ libraries/Data\ analysis/FastQC/
+
+```
+
+
+### 1.2.1 FastQC reports
+
+[1_R1_FastQC_report](./fastQC/1_S2_L002_R1_001_fastqc.html)
+[1_R2_FastQC_report](./fastQC/1_S2_L002_R2_001_fastqc.html)
+
+[2_R1_FastQC_report](./fastQC/2_S10_L003_R1_001_fastqc.html)
+[2_R2_FastQC_report](./fastQC/2_S10_L003_R2_001_fastqc.html)
+
+[3_R1_FastQC_report](./fastQC/3_S3_L002_R1_001_fastqc.html)
+[3_R2_FastQC_report](./fastQC/3_S3_L002_R2_001_fastqc.html)
+
+[4_R1_FastQC_report](./fastQC/4_S4_L002_R1_001_fastqc.html)
+[4_R2_FastQC_report](./fastQC/4_S4_L002_R2_001_fastqc.html)
+
+[5_R1_FastQC_report](./fastQC/5_S11_L003_R1_001_fastqc.html)
+[5_R2_FastQC_report](./fastQC/5_S11_L003_R2_001_fastqc.html)
+
+[6_R1_FastQC_report](./fastQC/6_S12_L003_R1_001_fastqc.html)
+[6_R2_FastQC_report](./fastQC/6_S12_L003_R2_001_fastqc.html)
+
+[7_R1_FastQC_report](./fastQC/7_S13_L003_R1_001_fastqc.html)
+[7_R2_FastQC_report](./fastQC/7_S13_L003_R2_001_fastqc.html)
+
+[8_R1_FastQC_report](./fastQC/8_S5_L002_R1_001_fastqc.html)
+[8_R2_FastQC_report](./fastQC/8_S5_L002_R2_001_fastqc.html)
+
+[9_R1_FastQC_report](./fastQC/9_S14_L003_R1_001_fastqc.html)
+[9_R2_FastQC_report](./fastQC/9_S14_L003_R2_001_fastqc.html)
+
+[10_R1_FastQC_report](./fastQC/10_S6_L002_R1_001_fastqc.html)
+[10_R2_FastQC_report](./fastQC/10_S6_L002_R2_001_fastqc.html)
+
+[11_R1_FastQC_report](./fastQC/11_S7_L002_R1_001_fastqc.html)
+[11_R2_FastQC_report](./fastQC/11_S7_L002_R2_001_fastqc.html)
+
+[12_R1_FastQC_report](./fastQC/12_S8_L002_R1_001_fastqc.html)
+[12_R2_FastQC_report](./fastQC/12_S8_L002_R2_001_fastqc.html)
+
+[13_R1_FastQC_report](./fastQC/13_S15_L003_R1_001_fastqc.html)
+[13_R2_FastQC_report](./fastQC/13_S15_L003_R2_001_fastqc.html)
+
+[14_R1_FastQC_report](./fastQC/14_S9_L002_R1_001_fastqc.html)
+[14_R2_FastQC_report](./fastQC/14_S9_L002_R2_001_fastqc.html)
+
+[15_R1_FastQC_report](./fastQC/15_S16_L003_R1_001_fastqc.html)
+[15_R2_FastQC_report](./fastQC/15_S16_L003_R2_001_fastqc.html)
+
+
+
+## 1.3 Adapter removal using NGmerge
+
+FastQC identified Illumina adaptor contamination beginning at bases 75bp, reaching 30% of the read content at 150 bp. The sequencing was 150 bp paired end (150PE). This is not unusual, especially in long PE reads. I trimmed off the adaptors using NGmerge, which uses a very clever approach for detecting overlapping reads, and trimming edges containing adaptor sequences. Method description can be found here: https://github.com/jsh58/NGmerge 
+
+```{bash, eval = FALSE}
+#NGmerge - this was run in a loop for files 1 to 15
+
+ #!/bin/sh
+ #SBATCH --job-name=cp_data
+ #SBATCH --time=30:00:00
+ #SBATCH --mem=16000
+ #SBATCH --ntasks=12
+
+/share/nordlab/users/kcichewicz/bin/NGmerge-master/NGmerge \
+-a \
+-u 41 \
+-n 12 \
+-1 /share/nordlab/users/kcichewicz/MAA/data/fastq/1_*R1*.fastq.gz \
+-2 /share/nordlab/users/kcichewicz/MAA/data/fastq/1_*R2*.fastq.gz \
+-o 1
+done
+```
+
+```{bash, eval = FALSE}
+
+#FastQC was rerun:
+
+ #!/bin/sh
+ #SBATCH --job-name=cp_data
+ #SBATCH --time=02:00:00
+ #SBATCH --mem=16000
+ #SBATCH --ntasks=15
+
+/share/nordlab/users/kcichewicz/bin/FastQC/fastqc \
+--threads 15 \
+--outdir /share/nordlab/users/kcichewicz/MAA/fastqc_NGmerge \
+/share/nordlab/users/kcichewicz/MAA/data/fastq_NGmerge/*fastq.gz
+```
+
+
+```{bash, eval = FALSE}
+Output files were copied as follows:
+scp -r kcichewicz@barbera.genomecenter.ucdavis.edu:/share/nordlab/users/kcichewicz/MAA/fastqc_NGmerge/* /mnt/G_drive/Nord\ Lab\ -\ Personal\ Folders/Karol/MAA\,\ new\ libraries/Data\ analysis/FastQC_NGmerge
+```
+
+
+### 1.3.1 FastQC reports after adaptor trimming 
+
+Sequence length distribution indicates reduced and variable read length.
+
+[1_R1_FastQC_trimmed_report](./fastQC_NGmerge/1_1_fastqc.html)
+[1_R2_FastQC_trimmed_report](./fastQC_NGmerge/1_2_fastqc.html)
+
+[2_R1_FastQC_trimmed_report](./fastQC_NGmerge/2_1_fastqc.html)
+[2_R2_FastQC_trimmed_report](./fastQC_NGmerge/2_2_fastqc.html)
+
+[3_R1_FastQC_trimmed_report](./fastQC_NGmerge/3_1_fastqc.html)
+[3_R2_FastQC_trimmed_report](./fastQC_NGmerge/3_2_fastqc.html)
+
+[4_R1_FastQC_trimmed_report](./fastQC_NGmerge/4_1_fastqc.html)
+[4_R2_FastQC_trimmed_report](./fastQC_NGmerge/4_2_fastqc.html)
+
+[5_R1_FastQC_trimmed_report](./fastQC_NGmerge/5_1_fastqc.html)
+[5_R2_FastQC_trimmed_report](./fastQC_NGmerge/5_2_fastqc.html)
+
+[6_R1_FastQC_trimmed_report](./fastQC_NGmerge/6_1_fastqc.html)
+[6_R2_FastQC_trimmed_report](./fastQC_NGmerge/6_2_fastqc.html)
+
+[7_R1_FastQC_trimmed_report](./fastQC_NGmerge/7_1_fastqc.html)
+[7_R2_FastQC_trimmed_report](./fastQC_NGmerge/7_2_fastqc.html)
+
+[8_R1_FastQC_trimmed_report](./fastQC_NGmerge/8_1_fastqc.html)
+[8_R2_FastQC_trimmed_report](./fastQC_NGmerge/8_2_fastqc.html)
+
+[9_R1_FastQC_trimmed_report](./fastQC_NGmerge/9_1_fastqc.html)
+[9_R2_FastQC_trimmed_report](./fastQC_NGmerge/9_2_fastqc.html)
+
+[10_R1_FastQC_trimmed_report](./fastQC_NGmerge/10_1_fastqc.html)
+[10_R2_FastQC_trimmed_report](./fastQC_NGmerge/10_2_fastqc.html)
+
+[11_R1_FastQC_trimmed_report](./fastQC_NGmerge/11_1_fastqc.html)
+[11_R2_FastQC_trimmed_report](./fastQC_NGmerge/11_2_fastqc.html)
+
+[12_R1_FastQC_trimmed_report](./fastQC_NGmerge/12_1_fastqc.html)
+[12_R2_FastQC_trimmed_report](./fastQC_NGmerge/12_2_fastqc.html)
+
+[13_R1_FastQC_trimmed_report](./fastQC_NGmerge/13_1_fastqc.html)
+[13_R2_FastQC_trimmed_report](./fastQC_NGmerge/13_2_fastqc.html)
+
+[14_R1_FastQC_trimmed_report](./fastQC_NGmerge/14_1_fastqc.html)
+[14_R2_FastQC_trimmed_report](./fastQC_NGmerge/14_2_fastqc.html)
+
+[15_R1_FastQC_trimmed_report](./fastQC_NGmerge/15_1_fastqc.html)
+[15_R2_FastQC_trimmed_report](./fastQC_NGmerge/15_2_fastqc.html)
+
+
+
+
+## 1.4 Alignment with STAR
+
+I'm using Ensembl Rnor_6.0 reference genome. This is the same genome as the one curated by the Illumina iGenomes. 
+
+```{bash, eval = FALSE}
+
+# STAR index prep:
+
+ #!/bin/sh
+ #SBATCH --job-name=STAR_index_gen
+ #SBATCH --time=02:00:00
+ #SBATCH --mem=64000
+ #SBATCH --ntasks=8
+
+/share/nordlab/users/kcichewicz/bin/STAR/source/STAR \
+--runMode genomeGenerate \
+--runThreadN 8 \
+--genomeDir /share/nordlab/users/kcichewicz/MAA/scripts/STAR_index/ \
+--genomeFastaFiles /share/nordlab/genomes/Rattus_norvegicus/Ensembl/Rnor_6.0/Sequence/WholeGenomeFasta/genome.fa \
+--sjdbGTFfile /share/nordlab/genomes/Rattus_norvegicus/Ensembl/Rnor_6.0/Annotation/Genes/genes_Ensembl_Rnor_6.gtf \
+--sjdbOverhang 149
+
+```
+
+
+```{bash, eval = FALSE}
+# Alignment
+
+ #!/bin/sh
+ #SBATCH --job-name=STAR_index_gen
+ #SBATCH --time=03:00:00
+ #SBATCH --mem=64000
+ #SBATCH --ntasks=16
+
+/share/nordlab/users/kcichewicz/bin/STAR/source/STAR \
+--runMode alignReads \
+--runThreadN 16 \
+--genomeDir /share/nordlab/users/kcichewicz/MAA/scripts/STAR_index/ \
+--readFilesCommand gunzip -c \
+--readFilesIn \
+/share/nordlab/users/kcichewicz/MAA/data/fastq_NGmerge/1_1.fastq.gz \
+/share/nordlab/users/kcichewicz/MAA/data/fastq_NGmerge/1_2.fastq.gz \
+--outSAMtype BAM SortedByCoordinate
+
+```
+
+
+### 1.4.1 Alignment stats 
+
+Alignment was inspected using the following scripts: 
+
+```{bash, eval = FALSE}
+less 1/Log.out | tail
+
+for i in {1..15};do echo ${i}; less BAMs/${i}/${i}_Log.out | tail -n 3; done | less > Log.out.combined.txt                             
+for i in {1..15};do echo ${i}; less BAMs/${i}/${i}_Log.final.out; done | less > Log.out.final.combined.txt
+
+```
+
+**A note about the effect of read trimming on the alignment**    
+I run a test alignment on sample #1 with fastq files that were not trimmed. The alignment rate of uniquely mapped reads dropped from 69.23% to 59.50%. Uniquely mapped read numbers were 22,792,149 vs 19,587,785, respectively. After trimming, the average mapped length was 280.27, compared to 288.28 (STAR sums the lengths of PE reads). This indicates that read trimming benefited the alignment.
+
+
+## 1.5 Sorting and indexing reads
+ 
+```{bash, eval = FALSE}
+
+#!/bin/sh
+ #SBATCH --job-name=STAR_index_gen
+ #SBATCH --time=03:00:00
+ #SBATCH --mem=64000
+ #SBATCH --ntasks=16
+
+sample=1
+
+/share/nordlab/users/kcichewicz/bin/samtools-1.10/samtools sort \
+-@ 16 \
+/share/nordlab/users/kcichewicz/MAA/UCSC_Rn_6_analysis/BAMs/${sample}/${sample}_Aligned.sortedByCoord.out.bam \
+-o /share/nordlab/users/kcichewicz/MAA/UCSC_Rn_6_analysis/sorted_BAMs/${sample}_sorted.bam
+
+/share/nordlab/users/kcichewicz/bin/samtools-1.10/samtools index \
+-@ 16 \
+/share/nordlab/users/kcichewicz/MAA/UCSC_Rn_6_analysis/sorted_BAMs/${sample}_sorted.bam
+
+```
+ 
+## 1.6 Counting reads per gene
+
+```{bash, eval = FALSE}
+
+ #!/bin/sh
+ #SBATCH --job-name=STAR_index_gen
+ #SBATCH --time=03:00:00
+ #SBATCH --mem=64000
+ #SBATCH --ntasks=16
+
+# This could have been run in a loop...
+/share/nordlab/users/kcichewicz/bin/subread-2.0.0-Linux-x86_64/bin/featureCounts \
+-a /share/nordlab/genomes/Rattus_norvegicus/Ensembl/Rnor_6.0/Annotation/Genes/genes.gtf \
+-o ./feature_counts_st_1.txt \
+-T 16 \
+-t exon \
+-g gene_id \
+-s 1 \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/1/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/2/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/3/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/4/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/5/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/6/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/7/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/8/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/9/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/10/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/11/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/12/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/13/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/14/Aligned.sortedByCoord.out.bam \
+/share/nordlab/users/kcichewicz/MAA/scripts/STAR_alignment/15/Aligned.sortedByCoord.out.bam
+
+```
+
