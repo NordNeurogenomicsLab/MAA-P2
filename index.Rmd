@@ -1245,13 +1245,16 @@ ml
 
 # 5. Gene Ontology Enrichment
 
-```{r, fig.cap="", cache=TRUE}
-# GO BP split
+Gene Ontology Biological Process Enrichment analysis for gene sets at P and FDR thresholds. 
 
+## 5.1 P < 0.05
+```{r topGO1, fig.cap="", cache=TRUE}
+# GO BP split
 GO_analysis <- function(q, b, c) {
 
   #q <- glm.output.full_En
   #b <- "upregulated"
+  #c = 4675
   
 library(topGO)
   background.genes <- q$gene_name
@@ -1269,7 +1272,7 @@ library(topGO)
   genesOfInterest <- test.genes
   geneList <- factor(as.integer(geneUniverse %in% genesOfInterest))
   names(geneList) <- geneUniverse
-  myGOdata <- new("topGOdata", description="My project", ontology="BP", allGenes=geneList,  annot=annFUN.org,    mapping="org.Rn.eg.db", ID = "alias", nodeSize=20)
+  myGOdata <- new("topGOdata", description="My project", ontology="BP", allGenes=geneList,  annot=annFUN.org,    mapping="org.Rn.eg.db", ID = "alias", nodeSize=5)
   print(myGOdata)
   
 resultFisher <- runTest(myGOdata, algorithm = "weight01", statistic = "fisher")
@@ -1292,7 +1295,7 @@ DE_genes_in_top_GO_cat <- function(r){
  df
 }
 
-list(allRes, lapply(1:20, DE_genes_in_top_GO_cat))
+list(allRes, lapply(1:nrow(allRes), DE_genes_in_top_GO_cat))
 }
 
 ### This was run mostly to test the algorithm. The P value threshold is too inclusive. ###
@@ -1305,19 +1308,54 @@ GO_BP_down_En <- GO_analysis(glm.output.full_En, "downregulated", 4675)
 
 ```
 
-## 5.1 GO BP Upregulated P < 0.05
+### 5.1.1 Upregulated
 ```{r}
-datatable(arrange(GO_BP_up_En[[1]], classicFisher), rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
+
+input <- GO_BP_up_En
+
+df <- dplyr::filter(input[[1]], classicFisher < 0.05)
+input_DE_genes <- dplyr::filter(rbindlist(input[[2]]), GO.ID %in% df$GO.ID)
+
+# Calculate enrichment
+padding = 5
+df$Enrichment <- log2((df$Significant + padding)/(df$Expected + padding))
+df <- arrange(df, -Enrichment)
+
+datatable(df, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
+
+input_DE_genes <- arrange(input_DE_genes, factor(GO.ID, levels = df$GO.ID))
+
+datatable(input_DE_genes, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
 
 ```
 
-## 5.2 GO BP Downregulated P < 0.05
+### 5.1.2 Downregulated
 ```{r}
-datatable(arrange(GO_BP_down_En[[1]], classicFisher), rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
 
+input <- GO_BP_down_En
+
+df <- dplyr::filter(input[[1]], classicFisher < 0.05)
+input_DE_genes <- dplyr::filter(rbindlist(input[[2]]), GO.ID %in% df$GO.ID)
+
+# Calculate enrichment
+padding = 5
+df$Enrichment <- log2((df$Significant + padding)/(df$Expected + padding))
+df <- arrange(df, -Enrichment)
+
+datatable(df, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
+
+input_DE_genes <- arrange(input_DE_genes, factor(GO.ID, levels = df$GO.ID))
+
+datatable(input_DE_genes, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
 ```
 
-```{r, cache=TRUE}
+
+## 5.3 FDR < 0.2
+
+There are `r nrow(filter(glm.output.full_En, FDR < 0.2, logFC > 0))` FDR < 0.2 upregulated genes,   
+and `r nrow(filter(glm.output.full_En, FDR < 0.2, logFC < 0))` FDR < 0.2 downregulated genes.
+
+```{r topGO2, cache=TRUE}
 
 ### I decided to settle on a more reasonable FDR < 0.2 ###
 #nrow(filter(glm.output.full_En, FDR < 0.2, logFC > 0)) #45
@@ -1344,7 +1382,7 @@ library(topGO)
   genesOfInterest <- test.genes
   geneList <- factor(as.integer(geneUniverse %in% genesOfInterest))
   names(geneList) <- geneUniverse
-  myGOdata <- new("topGOdata", description="My project", ontology="BP", allGenes=geneList,  annot=annFUN.org,    mapping="org.Rn.eg.db", ID = "alias", nodeSize=20)
+  myGOdata <- new("topGOdata", description="My project", ontology="BP", allGenes=geneList,  annot=annFUN.org,    mapping="org.Rn.eg.db", ID = "alias", nodeSize=5)
   print(myGOdata)
   
 resultFisher <- runTest(myGOdata, algorithm = "weight01", statistic = "fisher")
@@ -1372,21 +1410,52 @@ list(allRes, lapply(1:20, DE_genes_in_top_GO_cat))
 
 
 #
-GO_BP_up_UCSC_FDR_02 <- GO_analysis_FDR_02(glm.output.full_En, "upregulated", 4675)
-GO_BP_down_UCSC_FDR_02 <- GO_analysis_FDR_02(glm.output.full_En, "downregulated", 4675)
+GO_BP_up_En_FDR_02 <- GO_analysis_FDR_02(glm.output.full_En, "upregulated", 4675)
+GO_BP_down_En_FDR_02 <- GO_analysis_FDR_02(glm.output.full_En, "downregulated", 4675)
 
 
 ```
 
-## 5.3 GO BP Upregulated FDR < 0.2
+### 5.3.1 Upregulated
 ```{r}
-datatable(arrange(GO_BP_up_UCSC_FDR_02[[1]], classicFisher), rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
+
+input <- GO_BP_up_En_FDR_02
+
+df <- dplyr::filter(input[[1]], classicFisher < 0.05)
+input_DE_genes <- dplyr::filter(rbindlist(input[[2]]), GO.ID %in% df$GO.ID)
+
+# Calculate enrichment
+padding = 5
+df$Enrichment <- log2((df$Significant + padding)/(df$Expected + padding))
+df <- arrange(df, -Enrichment)
+
+datatable(df, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
+
+input_DE_genes <- arrange(input_DE_genes, factor(GO.ID, levels = df$GO.ID))
+
+datatable(input_DE_genes, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
+
 
 ```
 
 
-## 5.4 GO BP Downregulated FDR < 0.2
+### 5.3.2 Downregulated
 ```{r}
-datatable(arrange(GO_BP_down_UCSC_FDR_02[[1]], classicFisher), rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
 
+input <- GO_BP_down_En_FDR_02
+
+df <- dplyr::filter(input[[1]], classicFisher < 0.05)
+input_DE_genes <- dplyr::filter(rbindlist(input[[2]]), GO.ID %in% df$GO.ID)
+
+# Calculate enrichment
+padding = 5
+df$Enrichment <- log2((df$Significant + padding)/(df$Expected + padding))
+df <- arrange(df, -Enrichment)
+
+datatable(df, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
+
+input_DE_genes <- arrange(input_DE_genes, factor(GO.ID, levels = df$GO.ID))
+
+datatable(input_DE_genes, rownames = FALSE, filter="top", options = list(pageLength = 15, scrollX=T))
 ```
+
